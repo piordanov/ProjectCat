@@ -42,14 +42,13 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 		}
 	}
 
-	void LateUpdate() {
-		//avatar.transform.localPosition = playerLocal.position;
-		//avatar.transform.localRotation = playerLocal.rotation;
-
-		lHand.transform.position = lHandLocal.position;
-		lHand.transform.rotation = lHandLocal.rotation;
-		rHand.transform.position = rHandLocal.position;
-		rHand.transform.localRotation = rHandLocal.rotation;
+	void Update() {
+		if (photonView.isMine) {
+			lHand.transform.position = lHandLocal.position;
+			lHand.transform.rotation = lHandLocal.rotation;
+			rHand.transform.position = rHandLocal.position;
+			rHand.transform.rotation = rHandLocal.rotation;
+		}
 	}
 
 	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -58,25 +57,25 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 		{
 			stream.SendNext(playerGlobal.position);
 			stream.SendNext(playerGlobal.rotation);
-			stream.SendNext(playerLocal.localPosition);
-			stream.SendNext(playerLocal.localRotation);
+			stream.SendNext(playerLocal.position);
+			stream.SendNext(playerLocal.rotation);
 
 			stream.SendNext(lHandLocal.position);
 			stream.SendNext(lHandLocal.rotation);
-			stream.SendNext(rHandLocal.localPosition);
-			stream.SendNext(rHandLocal.localRotation);
+			stream.SendNext(rHandLocal.position);
+			stream.SendNext(rHandLocal.rotation);
 		}
 		else
 		{
 			this.transform.position = (Vector3)stream.ReceiveNext();
 			this.transform.rotation = (Quaternion)stream.ReceiveNext();
-			avatar.transform.localPosition = (Vector3)stream.ReceiveNext();
-			avatar.transform.localRotation = (Quaternion)stream.ReceiveNext();
+			avatar.transform.position = (Vector3)stream.ReceiveNext();
+			avatar.transform.rotation = (Quaternion)stream.ReceiveNext();
 
-			lHand.transform.localPosition = (Vector3)stream.ReceiveNext();
-			lHand.transform.localRotation = (Quaternion)stream.ReceiveNext();
-			rHand.transform.localPosition = (Vector3)stream.ReceiveNext();
-			rHand.transform.localRotation = (Quaternion)stream.ReceiveNext();
+			lHand.transform.position = (Vector3)stream.ReceiveNext();
+			lHand.transform.rotation = (Quaternion)stream.ReceiveNext();
+			rHand.transform.position = (Vector3)stream.ReceiveNext();
+			rHand.transform.rotation = (Quaternion)stream.ReceiveNext();
 		}
 	}
 }
