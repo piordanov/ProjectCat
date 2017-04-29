@@ -21,6 +21,6 @@ public class NetworkController : MonoBehaviour {
 
 	void OnJoinedRoom()
 	{
-		PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, Quaternion.identity, 0);
+		PhotonNetwork.Instantiate("NetworkedPlayerOld 2", Vector3.zero, Quaternion.identity, 0);
 	}
 }
