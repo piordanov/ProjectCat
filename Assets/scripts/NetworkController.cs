@@ -5,6 +5,7 @@ using UnityEngine;
 public class NetworkController : MonoBehaviour {
 
 	string _room = "Tutorial_Convrge";
+    public GameObject eyeAnchor;
 
 	void Start()
 	{
@@ -21,6 +22,6 @@ public class NetworkController : MonoBehaviour {
 
 	void OnJoinedRoom()
 	{
-		PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, Quaternion.identity, 0);
+		PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
 	}
 }

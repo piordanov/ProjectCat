@@ -13,7 +13,13 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 	public Transform lHandLocal;
 	public Transform rHandLocal;
 
-	void Start ()
+    //blocking items
+    public GameObject shield;
+    Vector3 vecR, vecL;
+    int i = 0;                              //i will be used for time, you can only block for 3 seconds at a time??
+    private float distance, block_distance;
+
+    void Start ()
 	{
 		Debug.Log("i'm instantiated");
 
@@ -48,8 +54,42 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			lHand.transform.rotation = lHandLocal.rotation;
 			rHand.transform.position = rHandLocal.position;
 			rHand.transform.rotation = rHandLocal.rotation;
+            checkBlocking();
 		}
 	}
+
+    void checkBlocking()
+    {
+        float rHandTrigger = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.Touch);
+        float lHandTrigger = OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger, OVRInput.Controller.Touch);
+        if (rHandTrigger > 0.5f && lHandTrigger > 0.5f)
+        {
+            Debug.Log("HELD");
+            /*
+            if (i * Time.deltaTime <= 3)
+            {
+                //can only block for 3 seconds
+                //what do we want to do here?
+                i = 0;
+                return;
+            }*/
+            i++;
+            //need to check that the 2 controllers are within some distance to indicate a block
+            vecR = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+            vecL = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+            distance = Mathf.Sqrt(((vecR.x - vecL.x) * (vecR.x - vecL.x)) + ((vecR.y - vecL.y) * (vecR.y - vecL.y)) + ((vecR.z - vecL.z) * (vecR.z - vecL.z)));
+            Debug.Log("distance: " + distance);
+            if (distance <= .1)
+            {
+                Debug.Log("BLOCKING");
+                shield.SetActive(true);
+            }
+        }
+        else
+        {
+            shield.SetActive(false);
+        }
+    }
 
 	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{
