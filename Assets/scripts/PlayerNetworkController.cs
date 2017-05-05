@@ -55,8 +55,84 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			rHand.transform.position = rHandLocal.position;
 			rHand.transform.rotation = rHandLocal.rotation;
             checkBlocking();
+            checkShurikenThrow();
 		}
 	}
+    void checkShurikenThrow()
+    {
+        Vector3 vec;
+        float z_end = 0, z_start = 0, x_end = 0, x_start = 0;
+        if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger))
+        {
+            Debug.Log("RIGHT");
+            Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
+            i++;
+            if (i == 1)
+            {
+                vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+                x_start = vec.x;
+                z_start = vec.z;
+
+                //sphere.SetActive(false);
+            }
+            Debug.Log("time = " + i * Time.deltaTime);
+            if (i * Time.deltaTime <= 4)
+            {
+                vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+                x_end = vec.x;
+                z_end = vec.z;
+
+                if (x_end - x_start >= .1 && z_end - z_start >= .3)
+                {
+                    Debug.Log("ATTACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                    spawnShuriken(lHandLocal.position);
+                    i = 0;
+                }
+            }
+
+        }
+
+        if (OVRInput.Get(OVRInput.RawButton.LIndexTrigger))
+        {
+            Debug.Log("LEFT");
+            Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch));
+            i++;
+            if (i == 1)
+            {
+                vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+                x_start = vec.x;
+                z_start = vec.z;
+
+            }
+            Debug.Log("time = " + i * Time.deltaTime);
+            if (i * Time.deltaTime <= 2)
+            {
+                vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+                x_end = vec.x;
+                z_end = vec.z;
+
+                if (x_start - x_end >= .2 && z_end - z_start >= .3)
+                {
+                    Debug.Log("ATTACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                    i = 0;
+                    spawnShuriken(lHandLocal.position);
+                }
+            }
+
+        }
+
+        else
+        {
+            i = 0;
+        }
+    }
+
+    [PunRPC]
+    void spawnShuriken(Vector3 pos)
+    {
+        Debug.Log("throw shuriken");
+        Instantiate(Resources.Load("shuriken"), pos, Quaternion.identity);
+    }
 
     void checkBlocking()
     {
