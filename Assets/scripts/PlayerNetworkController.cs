@@ -30,9 +30,16 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     float zRend, zLend;
     int shuriken_flag = 0;
 
+    // triggers
+    bool indexLtrigger;
+    bool indexRtrigger;
+    float lHandTrigger;
+    float rHandTrigger;
+    bool handTrigger;
+    bool indexTrigger;
 
     //time delay internals
-    float fireRate = 1.0f;
+    float fireRate = .5f;
 	float nextSlash;
 
     void Start ()
@@ -66,89 +73,84 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 
 	void Update() {
 		if (photonView.isMine) {
-			lHand.transform.position = lHandLocal.position;
-			lHand.transform.rotation = lHandLocal.rotation;
-			rHand.transform.position = rHandLocal.position;
-			rHand.transform.rotation = rHandLocal.rotation;
-            checkBlocking();
-            checkShurikenThrow();
-			checkSlash ();
-		}
+            lHand.transform.position = lHandLocal.position;
+            lHand.transform.rotation = lHandLocal.rotation;
+            rHand.transform.position = rHandLocal.position;
+            rHand.transform.rotation = rHandLocal.rotation;
+
+            rHandTrigger = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.Touch);
+            lHandTrigger = OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger, OVRInput.Controller.Touch);
+            indexRtrigger = OVRInput.Get(OVRInput.RawButton.RIndexTrigger);
+            indexLtrigger = OVRInput.Get(OVRInput.RawButton.LIndexTrigger);
+
+            handTrigger = (rHandTrigger > 0.5f && lHandTrigger > 0.5f);
+            indexTrigger = (indexLtrigger && indexRtrigger);
+            if ( handTrigger || indexTrigger)
+            {
+                vecR = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+                vecL = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+            }
+            if (indexTrigger)
+            {
+                checkShurikenThrow();
+                checkSlash();
+            }
+            else
+            {
+                i = 0;
+                shuriken_flag = 0;
+            }
+            if (handTrigger)
+            {
+                checkBlocking();
+            }
+            else { 
+                shield.SetActive(false);
+            }
+
+        }
 	}
 	void checkSlash()
 	{
-		if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger) && OVRInput.Get(OVRInput.RawButton.LIndexTrigger))
-		{
-			Debug.Log("RIGHT");
-			Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
-			Debug.Log("LEFT");
-			Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch));
 			i++;
 			if (i == 1)
 			{
-				vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-				vec2 = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
-				x1_start = vec.x;
-				x2_start = vec2.x;
-
-				//sphere.SetActive(false);
+				x1_start = vecR.x;
+				x2_start = vecL.x;
 			} 
-			Debug.Log("time = " + i * Time.deltaTime);
 			if (i * Time.deltaTime <= 2)
 			{
-				vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-				vec2 = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
-				x1_end = vec.x;
-				x2_end = vec2.x;
+				x1_end = vecR.x;
+				x2_end = vecL.x;
 				if ((((x1_start - x1_end) > .35) && ((x2_end - x2_start) > .35)) || (((x1_end - x1_start) > .35) && ((x2_start - x2_end) > .35)))
 				{
-					Debug.Log("ATTACK slash");
 					spawnShuriken (avatar.transform.position);
 					i = 0;
 				}
 			}
-
-			// Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch));
-		}
-		else
-		{
-			i = 0;
-		}
 	}
     void checkShurikenThrow()
     {
-        if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger) && OVRInput.Get(OVRInput.RawButton.LIndexTrigger))
-        {
             shuriken_flag++;
             if (shuriken_flag == 1)
             {
-                vecR = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-                vecL = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
-                xLstart = vecL.x;
-                xRstart = vecR.x;
+               // xLstart = vecL.x;
+               // xRstart = vecR.x;
                 zLstart = vecL.z;
                 zRstart = vecR.z;
             }
             if (shuriken_flag * Time.deltaTime <= 2)
             {
-                vecR = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-                vecL = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
-                xLend = vecL.x;
-                xRend = vecR.x;
+              //  xLend = vecL.x;
+               // xRend = vecR.x;
                 zLend = vecL.z;
                 zRend = vecR.z;
-                if ((xRend - xRstart >= .1 && zRend - zRstart >= .2) || (xLend - xLstart >= .1 && zLend - zLstart >= .2))
+                if ((zRend - zRstart >= .1) || (zLend - zLstart >= .1))
                 {
-                    Debug.Log("SHURIKEN ATTACK!!!!!====");
-                    spawnShuriken(playerGlobal.transform.position);
+                    spawnShuriken(lHandLocal.position);
                     shuriken_flag = 0;
                 }
             }
-        }
-        else
-        {
-            shuriken_flag = 0;
-        }
     }
 
     void spawnShuriken(Vector3 pos)
@@ -165,35 +167,12 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 
     void checkBlocking()
     {
-        float rHandTrigger = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.Touch);
-        float lHandTrigger = OVRInput.Get(OVRInput.Axis1D.SecondaryHandTrigger, OVRInput.Controller.Touch);
-        if (rHandTrigger > 0.5f && lHandTrigger > 0.5f)
-        {
-            Debug.Log("HELD");
-            /*
-            if (i * Time.deltaTime <= 3)
-            {
-                //can only block for 3 seconds
-                //what do we want to do here?
-                i = 0;
-                return;
-            }*/
-            i++;
             //need to check that the 2 controllers are within some distance to indicate a block
-            vecR = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-            vecL = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
             distance = Mathf.Sqrt(((vecR.x - vecL.x) * (vecR.x - vecL.x)) + ((vecR.y - vecL.y) * (vecR.y - vecL.y)) + ((vecR.z - vecL.z) * (vecR.z - vecL.z)));
-            Debug.Log("distance: " + distance);
             if (distance <= .1)
             {
-                Debug.Log("BLOCKING");
                 shield.SetActive(true);
             }
-        }
-        else
-        {
-            shield.SetActive(false);
-        }
     }
 
 	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -206,9 +185,9 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			stream.SendNext(playerLocal.rotation);
 
 			stream.SendNext(lHandLocal.position);
-			//stream.SendNext(lHandLocal.rotation);
+			stream.SendNext(lHandLocal.rotation);
 			stream.SendNext(rHandLocal.position);
-			//stream.SendNext(rHandLocal.rotation);
+			stream.SendNext(rHandLocal.rotation);
 		}
 		else
 		{
@@ -218,9 +197,9 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			avatar.transform.rotation = (Quaternion)stream.ReceiveNext();
 
 			lHand.transform.position = (Vector3)stream.ReceiveNext();
-			//lHand.transform.rotation = (Quaternion)stream.ReceiveNext();
+			lHand.transform.rotation = (Quaternion)stream.ReceiveNext();
 			rHand.transform.position = (Vector3)stream.ReceiveNext();
-			//rHand.transform.rotation = (Quaternion)stream.ReceiveNext();
+			rHand.transform.rotation = (Quaternion)stream.ReceiveNext();
 		}
 	}
 }
