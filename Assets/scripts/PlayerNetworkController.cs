@@ -19,6 +19,15 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     int i = 0;                              //i will be used for time, you can only block for 3 seconds at a time??
     private float distance, block_distance;
 
+	//slash objects
+	Vector3 vec, vec2;
+	public float x1_start, x1_end, x2_start, x2_end;
+
+
+	//time delay internals
+	float fireRate = 1.0f;
+	float nextSlash;
+
     void Start ()
 	{
 		Debug.Log("i'm instantiated");
@@ -56,8 +65,50 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			rHand.transform.rotation = rHandLocal.rotation;
             checkBlocking();
             checkShurikenThrow();
+			checkSlash ();
 		}
 	}
+	void checkSlash()
+	{
+		if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger) && OVRInput.Get(OVRInput.RawButton.LIndexTrigger))
+		{
+			Debug.Log("RIGHT");
+			Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
+			Debug.Log("LEFT");
+			Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch));
+			i++;
+			if (i == 1)
+			{
+				vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+				vec2 = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+				x1_start = vec.x;
+				x2_start = vec2.x;
+
+				//sphere.SetActive(false);
+			} 
+			Debug.Log("time = " + i * Time.deltaTime);
+			if (i * Time.deltaTime <= 2)
+			{
+				vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+				vec2 = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+				x1_end = vec.x;
+				x2_end = vec2.x;
+				if ((((x1_start - x1_end) > .5) && ((x2_end - x2_start) > .5)) || (((x1_end - x1_start) > .5) && ((x2_start - x2_end) > .5)))
+				{
+					Debug.Log("ATTACK slash");
+					spawnShuriken (avatar.transform.position);
+					i = 0;
+				}
+			}
+
+			// Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch));
+		}
+		else
+		{
+			i = 0;
+		}
+	}
+
     void checkShurikenThrow()
     {
         Vector3 vec;
@@ -75,7 +126,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 
                 //sphere.SetActive(false);
             }
-            Debug.Log("time = " + i * Time.deltaTime);
+            //Debug.Log("time = " + i * Time.deltaTime);
             if (i * Time.deltaTime <= 4)
             {
                 vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
@@ -85,7 +136,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
                 if (x_end - x_start >= .1 && z_end - z_start >= .3)
                 {
                     Debug.Log("ATTACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                    spawnShuriken(lHandLocal.position);
+                    //spawnShuriken(lHandLocal.position);
                     i = 0;
                 }
             }
@@ -104,7 +155,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
                 z_start = vec.z;
 
             }
-            Debug.Log("time = " + i * Time.deltaTime);
+            //Debug.Log("time = " + i * Time.deltaTime);
             if (i * Time.deltaTime <= 2)
             {
                 vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
@@ -115,7 +166,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
                 {
                     Debug.Log("ATTACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                     i = 0;
-                    spawnShuriken(lHandLocal.position);
+                  //  spawnShuriken(lHandLocal.position);
                 }
             }
 
@@ -130,8 +181,13 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     [PunRPC]
     void spawnShuriken(Vector3 pos)
     {
-        Debug.Log("throw shuriken");
-        Instantiate(Resources.Load("shuriken"), pos, Quaternion.identity);
+		if (Time.time > nextSlash) {
+			Debug.Log ("throw shuriken");
+			Instantiate (Resources.Load ("shuriken"), pos, Quaternion.identity);
+			nextSlash = Time.time + fireRate;
+		} else {
+			Debug.Log ("cooldown in effect");
+		}
     }
 
     void checkBlocking()
