@@ -23,9 +23,16 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 	Vector3 vec, vec2;
 	public float x1_start, x1_end, x2_start, x2_end;
 
+    //shuriken globals
+    float xRstart, xLstart;
+    float zRstart, zLstart;
+    float xRend, xLend;
+    float zRend, zLend;
+    int shuriken_flag = 0;
 
-	//time delay internals
-	float fireRate = 1.0f;
+
+    //time delay internals
+    float fireRate = 1.0f;
 	float nextSlash;
 
     void Start ()
@@ -93,7 +100,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 				vec2 = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
 				x1_end = vec.x;
 				x2_end = vec2.x;
-				if ((((x1_start - x1_end) > .5) && ((x2_end - x2_start) > .5)) || (((x1_end - x1_start) > .5) && ((x2_start - x2_end) > .5)))
+				if ((((x1_start - x1_end) > .35) && ((x2_end - x2_start) > .35)) || (((x1_end - x1_start) > .35) && ((x2_start - x2_end) > .35)))
 				{
 					Debug.Log("ATTACK slash");
 					spawnShuriken (avatar.transform.position);
@@ -108,82 +115,48 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			i = 0;
 		}
 	}
-
     void checkShurikenThrow()
     {
-        Vector3 vec;
-        float z_end = 0, z_start = 0, x_end = 0, x_start = 0;
-        if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger))
+        if (OVRInput.Get(OVRInput.RawButton.RIndexTrigger) && OVRInput.Get(OVRInput.RawButton.LIndexTrigger))
         {
-            Debug.Log("RIGHT");
-            Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
-            i++;
-            if (i == 1)
+            shuriken_flag++;
+            if (shuriken_flag == 1)
             {
-                vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-                x_start = vec.x;
-                z_start = vec.z;
-
-                //sphere.SetActive(false);
+                vecR = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+                vecL = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+                xLstart = vecL.x;
+                xRstart = vecR.x;
+                zLstart = vecL.z;
+                zRstart = vecR.z;
             }
-            //Debug.Log("time = " + i * Time.deltaTime);
-            if (i * Time.deltaTime <= 4)
+            if (shuriken_flag * Time.deltaTime <= 2)
             {
-                vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
-                x_end = vec.x;
-                z_end = vec.z;
-
-                if (x_end - x_start >= .1 && z_end - z_start >= .3)
+                vecR = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
+                vecL = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
+                xLend = vecL.x;
+                xRend = vecR.x;
+                zLend = vecL.z;
+                zRend = vecR.z;
+                if ((xRend - xRstart >= .1 && zRend - zRstart >= .2) || (xLend - xLstart >= .1 && zLend - zLstart >= .2))
                 {
-                    Debug.Log("ATTACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                    //spawnShuriken(lHandLocal.position);
-                    i = 0;
+                    Debug.Log("SHURIKEN ATTACK!!!!!====");
+                    spawnShuriken(playerGlobal.transform.position);
+                    shuriken_flag = 0;
                 }
             }
-
         }
-
-        if (OVRInput.Get(OVRInput.RawButton.LIndexTrigger))
-        {
-            Debug.Log("LEFT");
-            Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch));
-            i++;
-            if (i == 1)
-            {
-                vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
-                x_start = vec.x;
-                z_start = vec.z;
-
-            }
-            //Debug.Log("time = " + i * Time.deltaTime);
-            if (i * Time.deltaTime <= 2)
-            {
-                vec = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
-                x_end = vec.x;
-                z_end = vec.z;
-
-                if (x_start - x_end >= .2 && z_end - z_start >= .3)
-                {
-                    Debug.Log("ATTACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                    i = 0;
-                  //  spawnShuriken(lHandLocal.position);
-                }
-            }
-
-        }
-
         else
         {
-            i = 0;
+            shuriken_flag = 0;
         }
     }
 
-    [PunRPC]
     void spawnShuriken(Vector3 pos)
     {
 		if (Time.time > nextSlash) {
 			Debug.Log ("throw shuriken");
-			Instantiate (Resources.Load ("shuriken"), pos, Quaternion.identity);
+			GameObject projectile = PhotonNetwork.Instantiate ("shuriken", pos, avatar.transform.rotation, 0) as GameObject;
+            projectile.GetComponent<ShurikenController>().forwardVec = avatar.transform.forward;
 			nextSlash = Time.time + fireRate;
 		} else {
 			Debug.Log ("cooldown in effect");
@@ -233,9 +206,9 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			stream.SendNext(playerLocal.rotation);
 
 			stream.SendNext(lHandLocal.position);
-			stream.SendNext(lHandLocal.rotation);
+			//stream.SendNext(lHandLocal.rotation);
 			stream.SendNext(rHandLocal.position);
-			stream.SendNext(rHandLocal.rotation);
+			//stream.SendNext(rHandLocal.rotation);
 		}
 		else
 		{
@@ -245,9 +218,9 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			avatar.transform.rotation = (Quaternion)stream.ReceiveNext();
 
 			lHand.transform.position = (Vector3)stream.ReceiveNext();
-			lHand.transform.rotation = (Quaternion)stream.ReceiveNext();
+			//lHand.transform.rotation = (Quaternion)stream.ReceiveNext();
 			rHand.transform.position = (Vector3)stream.ReceiveNext();
-			rHand.transform.rotation = (Quaternion)stream.ReceiveNext();
+			//rHand.transform.rotation = (Quaternion)stream.ReceiveNext();
 		}
 	}
 }
