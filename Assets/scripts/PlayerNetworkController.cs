@@ -145,7 +145,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
                // xRend = vecR.x;
                 zLend = vecL.z;
                 zRend = vecR.z;
-                if ((zRend - zRstart >= .1) || (zLend - zLstart >= .1))
+                if ((zRend - zRstart >= .16) || (zLend - zLstart >= .1))
                 {
                     spawnShuriken(lHandLocal.position);
                     shuriken_flag = 0;
