@@ -41,6 +41,9 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     //time delay internals
     float fireRate = .5f;
 	float nextSlash;
+    float nextShuriken;
+
+	public int hp = 100;
 
     void Start ()
 	{
@@ -48,6 +51,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 
 		if (photonView.isMine)
 		{
+
 			Debug.Log("player is mine");
 
 			playerGlobal = GameObject.Find("OVRPlayerController").transform;
@@ -70,8 +74,17 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 
 		}
 	}
+    public static Vector3 getRelativePosition(Transform origin, Vector3 position)
+    {
+        Vector3 distance = position - origin.position;
+        Vector3 relativePosition = Vector3.zero;
+        relativePosition.x = Vector3.Dot(distance, origin.right.normalized);
+        relativePosition.y = Vector3.Dot(distance, origin.up.normalized);
+        relativePosition.z = Vector3.Dot(distance, origin.forward.normalized);
 
-	void Update() {
+        return relativePosition;
+    }
+    void Update() {
 		if (photonView.isMine) {
             lHand.transform.position = lHandLocal.position;
             lHand.transform.rotation = lHandLocal.rotation;
@@ -87,6 +100,8 @@ public class PlayerNetworkController : Photon.MonoBehaviour
             indexTrigger = (indexLtrigger && indexRtrigger);
             if ( handTrigger || indexTrigger)
             {
+                //vecR = getRelativePosition(avatar.transform, OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
+                //vecL = getRelativePosition(avatar.transform, OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch));
                 vecR = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch);
                 vecL = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch);
             }
@@ -99,6 +114,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
             {
                 i = 0;
                 shuriken_flag = 0;
+
             }
             if (handTrigger)
             {
@@ -115,16 +131,17 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			i++;
 			if (i == 1)
 			{
-				x1_start = vecR.x;
-				x2_start = vecL.x;
+				x1_start = vecR.y;
+				x2_start = vecL.y;
 			} 
 			if (i * Time.deltaTime <= 2)
 			{
-				x1_end = vecR.x;
-				x2_end = vecL.x;
-				if ((((x1_start - x1_end) > .35) && ((x2_end - x2_start) > .35)) || (((x1_end - x1_start) > .35) && ((x2_start - x2_end) > .35)))
+				x1_end = vecR.y;
+				x2_end = vecL.y;
+				if ((Mathf.Abs(x1_start - x1_end) > .35) && (Mathf.Abs(x2_end - x2_start) > .35) || (Mathf.Abs(x1_end - x1_start) > .35) && (Mathf.Abs(x2_start - x2_end) > .35))
 				{
-					spawnShuriken (avatar.transform.position);
+                Debug.Log("slash");
+					spawnSlash (avatar.transform.position);
 					i = 0;
 				}
 			}
@@ -155,14 +172,27 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 
     void spawnShuriken(Vector3 pos)
     {
-		if (Time.time > nextSlash) {
-			Debug.Log ("throw shuriken");
+		if (Time.time > nextShuriken) {
+			//Debug.Log ("throw shuriken");
 			GameObject projectile = PhotonNetwork.Instantiate ("shuriken", pos, avatar.transform.rotation, 0) as GameObject;
-            projectile.GetComponent<ShurikenController>().forwardVec = avatar.transform.forward;
-			nextSlash = Time.time + fireRate;
-		} else {
-			Debug.Log ("cooldown in effect");
+            //projectile.GetComponent<ShurikenController>().forwardVec = avatar.transform.forward;
+            projectile.GetComponent<Rigidbody>().velocity = avatar.transform.forward * 4.0f;
+
+            nextShuriken = Time.time + fireRate;
 		}
+    }
+
+    void spawnSlash(Vector3 pos)
+    {
+        if (Time.time > nextSlash)
+        {
+            Debug.Log("throw slash");
+            GameObject projectile = PhotonNetwork.Instantiate("slash", pos, avatar.transform.rotation, 0) as GameObject;
+            //projectile.GetComponent<ShurikenController>().forwardVec = avatar.transform.forward;
+            projectile.GetComponent<Rigidbody>().velocity = avatar.transform.forward * 6.0f;
+
+            nextSlash = Time.time + fireRate;
+        }
     }
 
     void checkBlocking()
