@@ -6,6 +6,10 @@ public class NetworkController : MonoBehaviour {
 
 	string _room = "Tutorial_Convrge";
     public GameObject eyeAnchor;
+    public OVRPlayerController playerController;
+
+    private Vector3[] positions = new Vector3[] { new Vector3(0, 1, 3), new Vector3(0, 1, 18) };
+    int playersJoined = 0;
 
 	void Start()
 	{
@@ -21,7 +25,31 @@ public class NetworkController : MonoBehaviour {
 	}
 
 	void OnJoinedRoom()
-	{
-		PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
-	}
+    {
+        playersJoined = PhotonNetwork.countOfPlayers;
+        if (playersJoined == 2)
+        {
+            playerController.transform.rotation = Quaternion.identity;
+            playerController.transform.Rotate(0, 180, 0);
+            Debug.Log("second player joined");
+            playerController.transform.position = positions[playersJoined-1];
+            PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
+            Debug.Log("First player joined");
+        }
+        else if (playersJoined > 2)
+        {
+            Debug.Log("players joined is " + playersJoined);
+            playerController.transform.position = positions[0];
+            PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
+            
+        }
+        else
+        {
+            playerController.transform.position = positions[playersJoined-1];
+            PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
+            Debug.Log("First player joined");            
+        }
+
+        Debug.Log("joined room");
+    }
 }

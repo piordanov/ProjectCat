@@ -53,7 +53,7 @@ public class SlashController : Photon.MonoBehaviour
             if (obj.tag == "avatar")
             {
                 Debug.Log("slash hit player");
-                obj.GetComponent<PlayerNetworkController>().hp -= 5;
+                obj.GetComponent<PlayerNetworkController>().hp -= 20;
             }
             else if (obj.tag == "shield")
             {

@@ -6,12 +6,15 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 	public GameObject avatar;
 	public GameObject lHand;
 	public GameObject rHand;
+    public GameObject avatarbody;
 
 	public Transform playerGlobal;
 	public Transform playerLocal;
 
 	public Transform lHandLocal;
 	public Transform rHandLocal;
+
+    public bool shieldOn = false;
 
     //blocking items
     public GameObject shield;
@@ -120,12 +123,15 @@ public class PlayerNetworkController : Photon.MonoBehaviour
             {
                 checkBlocking();
             }
-            else { 
+            else {
                 shield.SetActive(false);
             }
 
         }
-	}
+        avatarbody.transform.rotation = Quaternion.identity;
+        avatarbody.transform.position = avatar.transform.position;
+        avatarbody.transform.Translate(0, -0.5f, 0);
+    }
 	void checkSlash()
 	{
 		i++;
@@ -204,6 +210,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
             }
     }
 
+
 	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{
 		if (stream.isWriting)
@@ -217,6 +224,8 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			stream.SendNext(lHandLocal.rotation);
 			stream.SendNext(rHandLocal.position);
 			stream.SendNext(rHandLocal.rotation);
+
+            stream.SendNext(shield.activeSelf);
 		}
 		else
 		{
@@ -229,6 +238,8 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 			lHand.transform.rotation = (Quaternion)stream.ReceiveNext();
 			rHand.transform.position = (Vector3)stream.ReceiveNext();
 			rHand.transform.rotation = (Quaternion)stream.ReceiveNext();
+
+            shield.SetActive((bool)stream.ReceiveNext());
 		}
 	}
 }
