@@ -26,28 +26,34 @@ public class NetworkController : MonoBehaviour {
 
 	void OnJoinedRoom()
     {
+        GameObject player = null;
         playersJoined = PhotonNetwork.countOfPlayers;
         if (playersJoined == 2)
         {
             playerController.transform.rotation = Quaternion.identity;
             playerController.transform.Rotate(0, 180, 0);
             Debug.Log("second player joined");
-            playerController.transform.position = positions[playersJoined-1];
-            PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
+            playerController.transform.position = positions[playersJoined - 1];
+            player = PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
             Debug.Log("First player joined");
         }
         else if (playersJoined > 2)
         {
             Debug.Log("players joined is " + playersJoined);
             playerController.transform.position = positions[0];
-            PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
-            
+            player = PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
+
         }
         else
         {
-            playerController.transform.position = positions[playersJoined-1];
-            PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
-            Debug.Log("First player joined");            
+            playerController.transform.position = positions[playersJoined - 1];
+            player = PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
+            Debug.Log("First player joined");
+        }
+
+        if (player != null)
+        {
+            player.GetComponent<PlayerNetworkController>().id = playersJoined;
         }
 
         Debug.Log("joined room");

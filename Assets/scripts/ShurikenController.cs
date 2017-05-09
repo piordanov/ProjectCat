@@ -52,14 +52,22 @@ public class ShurikenController : Photon.MonoBehaviour {
 		if (photonView.isMine && isColliderEnabled) {
 			GameObject obj = other.gameObject;
 			if (obj.tag == "avatar") {
-				Debug.Log ("shuriken hit player");
-				obj.GetComponent<PlayerNetworkController> ().hp -= 5;
+				//Debug.Log ("shuriken hit player");
+                PlayerNetworkController parent = obj.GetComponentInParent<PlayerNetworkController>();
+                if (parent != null)
+                {
+                    parent.dealDamage(5);
+                }
+				else
+                {
+                    Debug.Log("ERROR playernetworkcontroller not found");
+                }
 			} else if (obj.tag == "shield") {
-				Debug.Log ("shuriken hit shield");
+				//Debug.Log ("shuriken hit shield");
 				obj.SetActive (false);
 			}
 			PhotonNetwork.Destroy (this.gameObject);
-			Debug.Log ("shuriken destroyed");
+			//Debug.Log ("shuriken destroyed");
 		}
 	}
 }

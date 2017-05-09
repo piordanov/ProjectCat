@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class PlayerNetworkController : Photon.MonoBehaviour
 {
@@ -47,6 +48,9 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     float nextShuriken;
 
 	public int hp = 100;
+    public int id;
+    private Text northPlayer1Score;
+    private Text northPlayer2Score;
 
     void Start ()
 	{
@@ -75,7 +79,21 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 
 			this.transform.localPosition = Vector3.zero;
 
-		}
+            GameObject textobj = GameObject.Find("/NorthCanvas/Score1");
+            northPlayer1Score = textobj.GetComponent<Text>();
+            textobj = GameObject.Find("/NorthCanvas/Score2");
+            northPlayer2Score = textobj.GetComponent<Text>();
+            if (northPlayer1Score == null)
+            {
+                Debug.Log("player1score not found");
+            }
+            if (northPlayer2Score == null)
+            {
+                Debug.Log("plaer2score not found");
+            }
+
+
+        }
 	}
     public static Vector3 getRelativePosition(Transform origin, Vector3 position)
     {
@@ -210,6 +228,27 @@ public class PlayerNetworkController : Photon.MonoBehaviour
             }
     }
 
+    public void dealDamage(int damage)
+    {
+        hp -= damage;
+        Debug.Log("hp reamaining: " + hp);
+        updateScoreBoards(hp, id);
+
+    }
+    void updateScoreBoards(int newHP, int player)
+    {
+        Debug.Log("updating score board of player " + player + " with new hp " + newHP);
+        if (player == 0)
+        {
+            Debug.Log("change");
+            northPlayer1Score.text = hp + "/100";
+        }
+        else
+        {
+            northPlayer2Score.text = hp + "/100";
+        }
+
+    }
 
 	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{
