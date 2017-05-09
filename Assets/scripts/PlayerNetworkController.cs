@@ -39,8 +39,8 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     bool indexTrigger;
 
     //time delay internals
-    float fireRate = .5f;
-	float nextSlash;
+    float fireRate = 1.0f;
+    float nextSlash;
     float nextShuriken;
 
 	public int hp = 100;
@@ -107,8 +107,8 @@ public class PlayerNetworkController : Photon.MonoBehaviour
             }
             if (indexTrigger)
             {
-                checkShurikenThrow();
                 checkSlash();
+                checkShurikenThrow();
             }
             else
             {
@@ -128,23 +128,24 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 	}
 	void checkSlash()
 	{
-			i++;
-			if (i == 1)
+		i++;
+		if (i == 1)
+		{
+			x1_start = vecR.y;
+			x2_start = vecL.y;
+		} 
+		if (i * Time.deltaTime <= 2)
+		{
+			x1_end = vecR.y;
+			x2_end = vecL.y;
+			if ((Mathf.Abs(x1_start - x1_end) > .35) && (Mathf.Abs(x2_end - x2_start) > .35) || (Mathf.Abs(x1_end - x1_start) > .35) && (Mathf.Abs(x2_start - x2_end) > .35))
 			{
-				x1_start = vecR.y;
-				x2_start = vecL.y;
-			} 
-			if (i * Time.deltaTime <= 2)
-			{
-				x1_end = vecR.y;
-				x2_end = vecL.y;
-				if ((Mathf.Abs(x1_start - x1_end) > .35) && (Mathf.Abs(x2_end - x2_start) > .35) || (Mathf.Abs(x1_end - x1_start) > .35) && (Mathf.Abs(x2_start - x2_end) > .35))
-				{
-                Debug.Log("slash");
-					spawnSlash (avatar.transform.position);
-					i = 0;
-				}
+				spawnSlash (avatar.transform.position);
+                i = 0;
+            
 			}
+		}
+        
 	}
     void checkShurikenThrow()
     {
@@ -173,11 +174,8 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     void spawnShuriken(Vector3 pos)
     {
 		if (Time.time > nextShuriken) {
-			//Debug.Log ("throw shuriken");
 			GameObject projectile = PhotonNetwork.Instantiate ("shuriken", pos, avatar.transform.rotation, 0) as GameObject;
-            //projectile.GetComponent<ShurikenController>().forwardVec = avatar.transform.forward;
             projectile.GetComponent<Rigidbody>().velocity = avatar.transform.forward * 4.0f;
-
             nextShuriken = Time.time + fireRate;
 		}
     }
@@ -188,11 +186,12 @@ public class PlayerNetworkController : Photon.MonoBehaviour
         {
             Debug.Log("throw slash");
             GameObject projectile = PhotonNetwork.Instantiate("slash", pos, avatar.transform.rotation, 0) as GameObject;
-            //projectile.GetComponent<ShurikenController>().forwardVec = avatar.transform.forward;
+            projectile.transform.Rotate(0, 90f, 90f);
             projectile.GetComponent<Rigidbody>().velocity = avatar.transform.forward * 6.0f;
 
             nextSlash = Time.time + fireRate;
         }
+        Debug.Log("slash cooldown");
     }
 
     void checkBlocking()

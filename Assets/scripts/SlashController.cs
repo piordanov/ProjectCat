@@ -22,7 +22,7 @@ public class SlashController : Photon.MonoBehaviour
 
     IEnumerator waitAndDestroy()
     {
-        yield return new WaitForSeconds(8);
+        yield return new WaitForSeconds(3);
         PhotonNetwork.Destroy(this.gameObject);
 
     }
@@ -30,7 +30,7 @@ public class SlashController : Photon.MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.localScale += new Vector3(0.01f, 0.01f, 0.01f);
+        transform.localScale += new Vector3(0.0001f, 0.00f, 0.0001f);
     }
 
     void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
