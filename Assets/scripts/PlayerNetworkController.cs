@@ -198,6 +198,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     void spawnShuriken(Vector3 pos)
     {
 		if (Time.time > nextShuriken) {
+            Debug.Log("throwing shuriken");
 			GameObject projectile = PhotonNetwork.Instantiate ("shuriken", pos, avatar.transform.rotation, 0) as GameObject;
             projectile.GetComponent<Rigidbody>().velocity = avatar.transform.forward * 4.0f;
             nextShuriken = Time.time + fireRate;

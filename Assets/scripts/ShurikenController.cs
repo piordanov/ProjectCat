@@ -19,8 +19,9 @@ public class ShurikenController : Photon.MonoBehaviour {
 
     IEnumerator enableCollision()
     {
-        yield return new WaitForSeconds(.02f);
+        yield return new WaitForSeconds(.04f);
         isColliderEnabled = true;
+        Debug.Log("you may start colliding");
     }
 
     IEnumerator waitAndDestroy()
@@ -50,12 +51,14 @@ public class ShurikenController : Photon.MonoBehaviour {
 
 	void OnTriggerEnter(Collider other) {
 		if (photonView.isMine && isColliderEnabled) {
+            Debug.Log("going in");
 			GameObject obj = other.gameObject;
 			if (obj.tag == "avatar") {
-				//Debug.Log ("shuriken hit player");
+				Debug.Log ("shuriken hit player");
                 PlayerNetworkController parent = obj.GetComponentInParent<PlayerNetworkController>();
                 if (parent != null)
                 {
+                    Debug.Log(parent.hp);
                     parent.dealDamage(5);
                 }
 				else
@@ -67,7 +70,7 @@ public class ShurikenController : Photon.MonoBehaviour {
 				obj.SetActive (false);
 			}
 			PhotonNetwork.Destroy (this.gameObject);
-			//Debug.Log ("shuriken destroyed");
+			Debug.Log ("shuriken destroyed");
 		}
 	}
 }

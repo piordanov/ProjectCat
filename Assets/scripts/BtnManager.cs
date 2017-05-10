@@ -5,8 +5,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class BtnManager : MonoBehaviour {
-
-
+    int control = 0;
+    public GameObject arrow;
     public void NewGameBtn()
     {
         Debug.Log("New Game Starting");
@@ -15,8 +15,17 @@ public class BtnManager : MonoBehaviour {
 
     public void ControlsBtn()
     {
+        control++;
         Debug.Log("Going to Controls");
-        SceneManager.LoadScene("controlscene");
+        //SceneManager.LoadScene("controlscene");
+        if (control % 2 == 0)
+        {
+            arrow.SetActive(false);
+        }
+        else
+        {
+            arrow.SetActive(true);
+        }
     }
 
     public void ExitBtn()
