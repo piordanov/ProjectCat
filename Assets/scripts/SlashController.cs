@@ -49,20 +49,31 @@ public class SlashController : Photon.MonoBehaviour
     {
         if (photonView.isMine && isColliderEnabled)
         {
-            GameObject obj = other.gameObject;
-            if (obj.tag == "avatar")
-            {
-                Debug.Log("slash hit player");
-                obj.GetComponent<PlayerNetworkController>().hp -= 20;
-                
-            }
-            else if (obj.tag == "shield")
-            {
-                Debug.Log("slash hit shield");
-                obj.SetActive(false);
-            }
-            PhotonNetwork.Destroy(this.gameObject);
-            Debug.Log("slash destroyed");
+			//Debug.Log("going in");
+			GameObject obj = other.gameObject;
+			//Debug.Log(obj.tag);
+			//Debug.Log(obj.name);
+			//Debug.Log(obj);
+			if (obj.tag == "avatar")
+			{
+				//Debug.Log("shuriken hit player");
+				PlayerNetworkController parent = obj.GetComponentInParent<PlayerNetworkController>();
+				if (parent != null)
+				{
+					parent.dealDamage(20);
+				}
+				else
+				{
+					Debug.Log("ERROR playernetworkcontroller not found");
+				}
+			}
+			else if (obj.tag == "shield")
+			{
+				//Debug.Log ("shuriken hit shield");
+				obj.SetActive(false);
+			}
+			PhotonNetwork.Destroy(this.gameObject);
+			//Debug.Log("shuriken destroyed");
         }
     }
 }

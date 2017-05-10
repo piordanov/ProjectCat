@@ -16,6 +16,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 	public Transform rHandLocal;
 
     public bool shieldOn = false;
+	public bool stillUp = false;
 
     //blocking items
     public GameObject shield;
@@ -26,6 +27,12 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 	//slash objects
 	Vector3 vec, vec2;
 	public float x1_start, x1_end, x2_start, x2_end;
+
+    //Sound listeners
+    public AudioSource shield_up;
+    public AudioSource shield_collision;
+    public AudioSource shuriken_SFX;
+    public AudioSource slash_SFX;
 
     //shuriken globals
     float xRstart, xLstart;
@@ -54,12 +61,12 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 
     void Start ()
 	{
-		Debug.Log("i'm instantiated");
+		//Debug.Log("i'm instantiated");
 
 		if (photonView.isMine)
 		{
 
-			Debug.Log("player is mine");
+			//Debug.Log("player is mine");
 
 			playerGlobal = GameObject.Find("OVRPlayerController").transform;
 			if (playerGlobal == null) {
@@ -83,6 +90,11 @@ public class PlayerNetworkController : Photon.MonoBehaviour
             northPlayer1Score = textobj.GetComponent<Text>();
             textobj = GameObject.Find("/NorthCanvas/Score2");
             northPlayer2Score = textobj.GetComponent<Text>();
+
+			shield_up = GameObject.Find ("ShieldUpSFX").GetComponent<AudioSource> ();
+			shield_collision  = GameObject.Find ("ShieldCollSFX").GetComponent<AudioSource> ();
+			shuriken_SFX  = GameObject.Find ("ShurikenSFX").GetComponent<AudioSource> ();
+			slash_SFX  = GameObject.Find ("SlashSFX").GetComponent<AudioSource> ();
             if (northPlayer1Score == null)
             {
                 Debug.Log("player1score not found");
@@ -143,6 +155,7 @@ public class PlayerNetworkController : Photon.MonoBehaviour
             }
             else {
                 shield.SetActive(false);
+				stillUp = false;
             }
 
         }
@@ -198,8 +211,10 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     void spawnShuriken(Vector3 pos)
     {
 		if (Time.time > nextShuriken) {
-            Debug.Log("throwing shuriken");
-			GameObject projectile = PhotonNetwork.Instantiate ("shuriken", pos, avatar.transform.rotation, 0) as GameObject;
+            //Debug.Log("throwing shuriken");
+            shuriken_SFX.Play(); // Fix this code by applying changes!!
+            shuriken_SFX.Play(44100);
+            GameObject projectile = PhotonNetwork.Instantiate ("shuriken", pos, avatar.transform.rotation, 0) as GameObject;
             projectile.GetComponent<Rigidbody>().velocity = avatar.transform.forward * 4.0f;
             nextShuriken = Time.time + fireRate;
 		}
@@ -209,14 +224,16 @@ public class PlayerNetworkController : Photon.MonoBehaviour
     {
         if (Time.time > nextSlash)
         {
-            Debug.Log("throw slash");
+            //Debug.Log("throw slash");
+            slash_SFX.Play();
+            slash_SFX.Play(44100);
             GameObject projectile = PhotonNetwork.Instantiate("slash", pos, avatar.transform.rotation, 0) as GameObject;
             projectile.transform.Rotate(0, 90f, 90f);
             projectile.GetComponent<Rigidbody>().velocity = avatar.transform.forward * 6.0f;
 
             nextSlash = Time.time + fireRate;
         }
-        Debug.Log("slash cooldown");
+        //Debug.Log("slash cooldown");
     }
 
     void checkBlocking()
@@ -226,36 +243,59 @@ public class PlayerNetworkController : Photon.MonoBehaviour
             if (distance <= .1)
             {
                 shield.SetActive(true);
+                //Debug.Log("I am here\n");
+			if (!stillUp) {
+				photonView.RPC ("playShieldUp", PhotonTargets.All);
+				stillUp = true;
+			}
             }
     }
 
     public void dealDamage(int damage)
     {
         this.hp -= damage;
-        Debug.Log("hp reamaining: " + this.hp);
+        //Debug.Log("hp reamaining: " + this.hp);
         photonView.RPC("updateScoreBoards", PhotonTargets.All, this.hp, this.id);
     }
 
     [PunRPC]
     public void updateScoreBoards(int newHP, int player, PhotonMessageInfo info)
     {
-        Debug.Log(string.Format("Info: {0} {1} {2}", info.sender, info.photonView, info.timestamp));
+        //Debug.Log(string.Format("Info: {0} {1} {2}", info.sender, info.photonView, info.timestamp));
     
-        if(photonView.isMine)
+		if(northPlayer1Score != null && northPlayer2Score != null)
         {
-            Debug.Log("updating score board of player " + player + " with new hp " + newHP);
-            if (player == 0)
-            {
-                Debug.Log("change");
-                northPlayer1Score.text = newHP + "/100";
-            }
-            else
-            {
-                northPlayer2Score.text = newHP + "/100";
-            }
+            //Debug.Log("updating score board of player " + player + " with new hp " + newHP);
+			if (player == 0) {
+				//Debug.Log ("change");
+				if (newHP <= 0) {
+					northPlayer1Score.text = "You Lose!";
+					northPlayer2Score.text = "You Win!";
+				} else {
+					northPlayer1Score.text = newHP + "/100";
+				}
+			} else {
+				if (newHP <= 0) {
+					northPlayer1Score.text = "You Win!";
+					northPlayer2Score.text = "You Lose!";
+				} else {
+					northPlayer2Score.text = newHP + "/100";
+				}
+			}
         }
 
     }
+
+	[PunRPC]
+	public void playShieldUp()
+	{
+		//Debug.Log ("play shield sound");
+		if (shield_up != null) {
+			//Debug.Log ("playing soujnd");
+			shield_up.Play();
+		}
+
+	}
 
 	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{

@@ -23,7 +23,7 @@ public class ShurikenController : Photon.MonoBehaviour
     {
         yield return new WaitForSeconds(.04f);
         isColliderEnabled = true;
-        Debug.Log("you may start colliding");
+        //Debug.Log("you may start colliding");
     }
 
     IEnumerator waitAndDestroy()
@@ -56,14 +56,14 @@ public class ShurikenController : Photon.MonoBehaviour
     {
         if (photonView.isMine && isColliderEnabled)
         {
-            Debug.Log("going in");
+            //Debug.Log("going in");
             GameObject obj = other.gameObject;
-            Debug.Log(obj.tag);
-            Debug.Log(obj.name);
-            Debug.Log(obj);
+            //Debug.Log(obj.tag);
+            //Debug.Log(obj.name);
+            //Debug.Log(obj);
             if (obj.tag == "avatar")
             {
-                Debug.Log("shuriken hit player");
+                //Debug.Log("shuriken hit player");
                 PlayerNetworkController parent = obj.GetComponentInParent<PlayerNetworkController>();
                 if (parent != null)
                 {
@@ -80,7 +80,7 @@ public class ShurikenController : Photon.MonoBehaviour
                 obj.SetActive(false);
             }
             PhotonNetwork.Destroy(this.gameObject);
-            Debug.Log("shuriken destroyed");
+            //Debug.Log("shuriken destroyed");
         }
     }
 }

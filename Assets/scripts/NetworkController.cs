@@ -18,7 +18,7 @@ public class NetworkController : MonoBehaviour {
 
 	void OnJoinedLobby()
 	{
-		Debug.Log("joined lobby");
+		//Debug.Log("joined lobby");
 
 		RoomOptions roomOptions = new RoomOptions() { };
 		PhotonNetwork.JoinOrCreateRoom(_room, roomOptions, TypedLobby.Default);
@@ -32,14 +32,14 @@ public class NetworkController : MonoBehaviour {
         {
             playerController.transform.rotation = Quaternion.identity;
             playerController.transform.Rotate(0, 180, 0);
-            Debug.Log("second player joined");
+            //Debug.Log("second player joined");
             playerController.transform.position = positions[playersJoined - 1];
             player = PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
-            Debug.Log("First player joined");
+           // Debug.Log("First player joined");
         }
         else if (playersJoined > 2)
         {
-            Debug.Log("players joined is " + playersJoined);
+            //Debug.Log("players joined is " + playersJoined);
             playerController.transform.position = positions[0];
             player = PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
 
@@ -48,7 +48,7 @@ public class NetworkController : MonoBehaviour {
         {
             playerController.transform.position = positions[playersJoined - 1];
             player = PhotonNetwork.Instantiate("NetworkedPlayer", Vector3.zero, eyeAnchor.transform.rotation, 0);
-            Debug.Log("First player joined");
+            //Debug.Log("First player joined");
         }
 
         if (player != null)
@@ -56,6 +56,6 @@ public class NetworkController : MonoBehaviour {
             player.GetComponent<PlayerNetworkController>().id = playersJoined;
         }
 
-        Debug.Log("joined room");
+        //Debug.Log("joined room");
     }
 }
