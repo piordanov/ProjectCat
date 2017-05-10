@@ -231,22 +231,28 @@ public class PlayerNetworkController : Photon.MonoBehaviour
 
     public void dealDamage(int damage)
     {
-        hp -= damage;
-        Debug.Log("hp reamaining: " + hp);
-        updateScoreBoards(hp, id);
-
+        this.hp -= damage;
+        Debug.Log("hp reamaining: " + this.hp);
+        photonView.RPC("updateScoreBoards", PhotonTargets.All, this.hp, this.id);
     }
-    void updateScoreBoards(int newHP, int player)
+
+    [PunRPC]
+    public void updateScoreBoards(int newHP, int player, PhotonMessageInfo info)
     {
-        Debug.Log("updating score board of player " + player + " with new hp " + newHP);
-        if (player == 0)
+        Debug.Log(string.Format("Info: {0} {1} {2}", info.sender, info.photonView, info.timestamp));
+    
+        if(photonView.isMine)
         {
-            Debug.Log("change");
-            northPlayer1Score.text = hp + "/100";
-        }
-        else
-        {
-            northPlayer2Score.text = hp + "/100";
+            Debug.Log("updating score board of player " + player + " with new hp " + newHP);
+            if (player == 0)
+            {
+                Debug.Log("change");
+                northPlayer1Score.text = newHP + "/100";
+            }
+            else
+            {
+                northPlayer2Score.text = newHP + "/100";
+            }
         }
 
     }

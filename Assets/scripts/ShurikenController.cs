@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShurikenController : Photon.MonoBehaviour {
+public class ShurikenController : Photon.MonoBehaviour
+{
 
-	//private float speed = 4.0f;
-	private int rotSpeed = 600;
+    //private float speed = 4.0f;
+    private int rotSpeed = 600;
     private bool isColliderEnabled = false;
-   // public Vector3 forwardVec;
-	// Use this for initialization
-	void Start () {
+    // public Vector3 forwardVec;
+    // Use this for initialization
+    void Start()
+    {
         if (photonView.isMine)
         {
             StartCoroutine(waitAndDestroy());
@@ -30,47 +32,55 @@ public class ShurikenController : Photon.MonoBehaviour {
         PhotonNetwork.Destroy(this.gameObject);
 
     }
-	
-	// Update is called once per frame
-	void Update () {
-				
-		transform.Rotate (0, rotSpeed * Time.deltaTime, 0);
-	}
 
-	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-	{
-		if (stream.isWriting)
-		{
-			stream.SendNext(this.transform.position);
-		}
-		else
-		{
-			this.transform.position = (Vector3)stream.ReceiveNext();
-		}
-	}
+    // Update is called once per frame
+    void Update()
+    {
 
-	void OnTriggerEnter(Collider other) {
-		if (photonView.isMine && isColliderEnabled) {
+        transform.Rotate(0, rotSpeed * Time.deltaTime, 0);
+    }
+
+    void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.isWriting)
+        {
+            stream.SendNext(this.transform.position);
+        }
+        else
+        {
+            this.transform.position = (Vector3)stream.ReceiveNext();
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (photonView.isMine && isColliderEnabled)
+        {
             Debug.Log("going in");
-			GameObject obj = other.gameObject;
-			if (obj.tag == "avatar") {
-				Debug.Log ("shuriken hit player");
+            GameObject obj = other.gameObject;
+            Debug.Log(obj.tag);
+            Debug.Log(obj.name);
+            Debug.Log(obj);
+            if (obj.tag == "avatar")
+            {
+                Debug.Log("shuriken hit player");
                 PlayerNetworkController parent = obj.GetComponentInParent<PlayerNetworkController>();
                 if (parent != null)
                 {
-                    Debug.Log(parent.hp);
                     parent.dealDamage(5);
                 }
-				else
+                else
                 {
                     Debug.Log("ERROR playernetworkcontroller not found");
                 }
-			} else if (obj.tag == "shield") {
-				//Debug.Log ("shuriken hit shield");
-				obj.SetActive (false);
-			}
-			PhotonNetwork.Destroy (this.gameObject);
-			Debug.Log ("shuriken destroyed");
-		}
-	}
+            }
+            else if (obj.tag == "shield")
+            {
+                //Debug.Log ("shuriken hit shield");
+                obj.SetActive(false);
+            }
+            PhotonNetwork.Destroy(this.gameObject);
+            Debug.Log("shuriken destroyed");
+        }
+    }
 }
